@@ -8,7 +8,6 @@
 
 #import <React/RCTBridge.h>
 #import <React/RCTConvert.h>
-#import <React/RCTEventDispatcher.h>
 #import <React/RCTUtils.h>
 #import "RNQuickActionManager.h"
 
@@ -29,6 +28,21 @@ NSDictionary *RNQuickAction(UIApplicationShortcutItem *item) {
 }
 
 RCT_EXPORT_MODULE();
+
+static id _instace;
+ 
++ (instancetype)allocWithZone:(struct _NSZone *)zone {
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        _instace = [super allocWithZone:zone];
+    });
+    return _instace;
+}
+
+- (NSArray<NSString *> *)supportedEvents
+{
+  return @[@"quickAction", @"EventReminder"];
+}
 
 @synthesize bridge = _bridge;
 
@@ -157,8 +171,7 @@ RCT_EXPORT_METHOD(clearShortcutItems)
 
 - (void)handleQuickActionPress:(NSNotification *) notification
 {
-    [_bridge.eventDispatcher sendDeviceEventWithName:@"quickActionShortcut"
-                                                body:notification.userInfo];
+    [self sendEventWithName:@"quickActionShortcut" body: @{@"userInfo": notification.userInfo}];
 }
 
 - (NSDictionary *)constantsToExport
